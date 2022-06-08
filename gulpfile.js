@@ -4,7 +4,7 @@ const uglify = require('gulp-uglify')
 const babel = require('gulp-babel')
 const rename = require('gulp-rename')
 const replace = require('gulp-replace')
-const sass = require('gulp-sass')
+const sass = require('gulp-sass')(require('sass'))
 const cleanCSS = require('gulp-clean-css')
 const prefixer = require('gulp-autoprefixer')
 const sourcemaps = require('gulp-sourcemaps')
@@ -48,7 +48,7 @@ gulp.task('build_commonjs', function () {
 gulp.task('build_umd', function () {
   return gulp.src(['index.ts'])
     .pipe(ts(tsconfig.compilerOptions))
-    .pipe(replace(`import XEUtils from 'xe-utils/ctor';`, `import XEUtils from 'xe-utils';`))
+    .pipe(replace('import XEUtils from \'xe-utils/ctor\';', 'import XEUtils from \'xe-utils\';'))
     .pipe(babel({
       moduleId: pack.name,
       presets: ['@babel/env'],

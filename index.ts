@@ -1,4 +1,5 @@
 import { CreateElement } from 'vue'
+import _ from 'lodash'
 import XEUtils from 'xe-utils'
 import {
   VXETable,
@@ -54,12 +55,12 @@ function getChangeEvent (renderOpts: RenderOptions) {
 
 function getCellEditFilterProps (renderOpts: RenderOptions, params: TableRenderParams, value: any, defaultProps?: { [prop: string]: any }) {
   const { vSize } = params.$table
-  return XEUtils.assign(vSize ? { size: vSize } : {}, defaultProps, renderOpts.props, { [getModelProp(renderOpts)]: value })
+  return _.assign(vSize ? { size: vSize } : {}, defaultProps, renderOpts.props, { [getModelProp(renderOpts)]: value })
 }
 
 function getItemProps (renderOpts: RenderOptions, params: FormItemRenderParams, value: any, defaultProps?: { [prop: string]: any }) {
   const { vSize } = params.$form
-  return XEUtils.assign(vSize ? { size: vSize } : {}, defaultProps, renderOpts.props, { [getModelProp(renderOpts)]: value })
+  return _.assign(vSize ? { size: vSize } : {}, defaultProps, renderOpts.props, { [getModelProp(renderOpts)]: value })
 }
 
 function formatText (cellValue: any) {
@@ -84,7 +85,7 @@ function getCellLabelVNs (h: CreateElement, renderOpts: ColumnEditRenderOptions,
 function getNativeOns (renderOpts: RenderOptions, params: RenderParams) {
   const { nativeEvents } = renderOpts
   const nativeOns: { [type: string]: Function } = {}
-  XEUtils.objectEach(nativeEvents, (func: Function, key: string) => {
+  _.each(nativeEvents, (func: Function, key: string) => {
     nativeOns[key] = function (...args: any[]) {
       func(params, ...args)
     }
@@ -98,7 +99,7 @@ function getOns (renderOpts: RenderOptions, params: RenderParams, inputFunc?: Fu
   const changeEvent = getChangeEvent(renderOpts)
   const isSameEvent = changeEvent === modelEvent
   const ons: { [type: string]: Function } = {}
-  XEUtils.objectEach(events, (func: Function, key: string) => {
+  _.each(events, (func: Function, key: string) => {
     ons[key] = function (...args: any[]) {
       func(params, ...args)
     }
@@ -129,7 +130,7 @@ function getEditOns (renderOpts: RenderOptions, params: ColumnEditRenderParams) 
   const { $table, row, column } = params
   return getOns(renderOpts, params, (value: any) => {
     // 处理 model 值双向绑定
-    XEUtils.set(row, column.property, value)
+    _.set(row, column.property, value)
   }, () => {
     // 处理 change 事件相关逻辑
     $table.updateStatus(params)
@@ -147,7 +148,7 @@ function getItemOns (renderOpts: RenderOptions, params: FormItemRenderParams) {
   const { $form, data, property } = params
   return getOns(renderOpts, params, (value: any) => {
     // 处理 model 值双向绑定
-    XEUtils.set(data, property, value)
+    _.set(data, property, value)
   }, () => {
     // 处理 change 事件相关逻辑
     $form.updateStatus(params)
@@ -157,7 +158,7 @@ function getItemOns (renderOpts: RenderOptions, params: FormItemRenderParams) {
 function matchCascaderData (index: number, list: any[], values: any[], labels: any[]) {
   const val = values[index]
   if (list && values.length > index) {
-    XEUtils.each(list, (item) => {
+    _.each(list, (item: any) => {
       if (item.value === val) {
         labels.push(item.label)
         matchCascaderData(++index, item.children, values, labels)
@@ -178,21 +179,21 @@ function getSelectCellValue (renderOpts: ColumnCellRenderOptions, params: Column
   const labelProp = optionProps.label || 'label'
   const valueProp = optionProps.value || 'value'
   const groupOptions = optionGroupProps.options || 'options'
-  const cellValue = XEUtils.get(row, column.property)
+  const cellValue = _.get(row, column.property)
   if (!isEmptyValue(cellValue)) {
-    return XEUtils.map(props.mode === 'multiple' ? cellValue : [cellValue], optionGroups
-      ? (value) => {
+    return _.map(props.mode === 'multiple' ? cellValue : [cellValue], optionGroups
+      ? (value: any) => {
           let selectItem
           for (let index = 0; index < optionGroups.length; index++) {
-            selectItem = XEUtils.find(optionGroups[index][groupOptions], (item) => item[valueProp] === value)
+            selectItem = _.find(optionGroups[index][groupOptions], (item: any) => item[valueProp] === value)
             if (selectItem) {
               break
             }
           }
           return selectItem ? selectItem[labelProp] : value
         }
-      : (value) => {
-          const selectItem = XEUtils.find(options, (item) => item[valueProp] === value)
+      : (value: any) => {
+          const selectItem = _.find(options, (item: any) => item[valueProp] === value)
           return selectItem ? selectItem[labelProp] : value
         }).join(', ')
   }
@@ -202,7 +203,7 @@ function getSelectCellValue (renderOpts: ColumnCellRenderOptions, params: Column
 function getCascaderCellValue (renderOpts: RenderOptions, params: ColumnCellRenderParams) {
   const { props = {} } = renderOpts
   const { row, column } = params
-  const cellValue = XEUtils.get(row, column.property)
+  const cellValue = _.get(row, column.property)
   const values = cellValue || []
   const labels: Array<any> = []
   matchCascaderData(0, props.options, values, labels)
@@ -212,9 +213,9 @@ function getCascaderCellValue (renderOpts: RenderOptions, params: ColumnCellRend
 function getRangePickerCellValue (renderOpts: RenderOptions, params: ColumnCellRenderParams) {
   const { props = {} } = renderOpts
   const { row, column } = params
-  let cellValue = XEUtils.get(row, column.property)
-  if (XEUtils.isArray(cellValue)) {
-    cellValue = XEUtils.map(cellValue, (date) => date.format(props.format || 'YYYY-MM-DD')).join(' ~ ')
+  let cellValue = _.get(row, column.property)
+  if (_.isArray(cellValue)) {
+    cellValue = _.map(cellValue, (date: any) => date.format(props.format || 'YYYY-MM-DD')).join(' ~ ')
   }
   return cellValue
 }
@@ -223,10 +224,10 @@ function getTreeSelectCellValue (renderOpts: RenderOptions, params: ColumnCellRe
   const { props = {} } = renderOpts
   const { treeData, treeCheckable } = props
   const { row, column } = params
-  const cellValue = XEUtils.get(row, column.property)
+  const cellValue = _.get(row, column.property)
   if (!isEmptyValue(cellValue)) {
-    return XEUtils.map(treeCheckable ? cellValue : [cellValue], (value) => {
-      const matchObj = XEUtils.findTree(treeData as any[], (item) => item.value === value, { children: 'children' })
+    return _.map(treeCheckable ? cellValue : [cellValue], (value: any) => {
+      const matchObj = XEUtils.findTree(treeData as any[], (item: any) => item.value === value, { children: 'children' })
       return matchObj ? matchObj.item.title : value
     }).join(', ')
   }
@@ -236,7 +237,7 @@ function getTreeSelectCellValue (renderOpts: RenderOptions, params: ColumnCellRe
 function getDatePickerCellValue (renderOpts: RenderOptions, params: ColumnCellRenderParams | ColumnExportCellRenderParams, defaultFormat: string) {
   const { props = {} } = renderOpts
   const { row, column } = params
-  let cellValue = XEUtils.get(row, column.property)
+  let cellValue = _.get(row, column.property)
   if (cellValue) {
     cellValue = cellValue.format(props.format || defaultFormat)
   }
@@ -247,7 +248,7 @@ function createEditRender (defaultProps?: { [key: string]: any }) {
   return function (h: CreateElement, renderOpts: ColumnEditRenderOptions, params: ColumnEditRenderParams) {
     const { row, column } = params
     const { attrs } = renderOpts
-    const cellValue = XEUtils.get(row, column.property)
+    const cellValue = _.get(row, column.property)
     return [
       h(renderOpts.name, {
         attrs,
@@ -311,8 +312,8 @@ function handleConfirmFilter (params: ColumnFilterRenderParams, checked: boolean
 function defaultFuzzyFilterMethod (params: ColumnFilterMethodParams) {
   const { option, row, column } = params
   const { data } = option
-  const cellValue = XEUtils.get(row, column.property)
-  return XEUtils.toValueString(cellValue).indexOf(data) > -1
+  const cellValue = _.get(row, column.property)
+  return _.toString(cellValue).indexOf(data) > -1
 }
 
 /**
@@ -322,7 +323,7 @@ function defaultFuzzyFilterMethod (params: ColumnFilterMethodParams) {
 function defaultExactFilterMethod (params: ColumnFilterMethodParams) {
   const { option, row, column } = params
   const { data } = option
-  const cellValue = XEUtils.get(row, column.property)
+  const cellValue = _.get(row, column.property)
   /* eslint-disable eqeqeq */
   return cellValue === data
 }
@@ -330,7 +331,7 @@ function defaultExactFilterMethod (params: ColumnFilterMethodParams) {
 function renderOptions (h: CreateElement, options: any[], optionProps: OptionProps) {
   const labelProp = optionProps.label || 'label'
   const valueProp = optionProps.value || 'value'
-  return XEUtils.map(options, (item, oIndex) => {
+  return _.map(options, (item: any, oIndex: any) => {
     return h('a-select-option', {
       key: oIndex,
       props: {
@@ -350,7 +351,7 @@ function createFormItemRender (defaultProps?: { [key: string]: any }) {
     const { data, property } = params
     const { name } = renderOpts
     const { attrs } = renderOpts
-    const itemValue = XEUtils.get(data, property)
+    const itemValue = _.get(data, property)
     return [
       h(name, {
         attrs,
@@ -382,14 +383,14 @@ function defaultButtonsItemRender (h: CreateElement, renderOpts: FormItemRenderO
 function createDatePickerExportMethod (defaultFormat: string) {
   return function (params: ColumnExportCellRenderParams) {
     const { row, column, options } = params
-    return options && options.original ? XEUtils.get(row, column.property) : getDatePickerCellValue(column.editRender || column.cellRender, params, defaultFormat)
+    return options && options.original ? _.get(row, column.property) : getDatePickerCellValue(column.editRender || column.cellRender, params, defaultFormat)
   }
 }
 
 function createExportMethod (getExportCellValue: Function) {
   return function (params: ColumnExportCellRenderParams) {
     const { row, column, options } = params
-    return options && options.original ? XEUtils.get(row, column.property) : getExportCellValue(column.editRender || column.cellRender, params)
+    return options && options.original ? _.get(row, column.property) : getExportCellValue(column.editRender || column.cellRender, params)
   }
 }
 
@@ -400,7 +401,7 @@ function createFormItemRadioAndCheckboxRender () {
     const { attrs } = renderOpts
     const labelProp = optionProps.label || 'label'
     const valueProp = optionProps.value || 'value'
-    const itemValue = XEUtils.get(data, property)
+    const itemValue = _.get(data, property)
     return [
       h(`${name}Group`, {
         attrs,
@@ -458,8 +459,9 @@ function handleClearEvent (params: InterceptorParams, e: any) {
 }
 
 declare module 'vxe-table' {
+  // eslint-disable-next-line no-unused-vars
   interface RendererMapOptions {
-    defaultFilterMethod?(params: ColumnFilterMethodParams): boolean;
+    defaultFilterMethod? (params: ColumnFilterMethodParams): boolean;
   }
 }
 
@@ -501,7 +503,7 @@ export const VXETablePluginAntd = {
           const { options = [], optionGroups, optionProps = {}, optionGroupProps = {} } = renderOpts
           const { row, column } = params
           const { attrs } = renderOpts
-          const cellValue = XEUtils.get(row, column.property)
+          const cellValue = _.get(row, column.property)
           const props = getCellEditFilterProps(renderOpts, params, cellValue)
           const on = getEditOns(renderOpts, params)
           const nativeOn = getNativeOns(renderOpts, params)
@@ -514,7 +516,7 @@ export const VXETablePluginAntd = {
                 attrs,
                 on,
                 nativeOn
-              }, XEUtils.map(optionGroups, (group, gIndex) => {
+              }, _.map(optionGroups, (group: any, gIndex: any) => {
                 return h('a-select-opt-group', {
                   key: gIndex
                 }, [
@@ -551,29 +553,29 @@ export const VXETablePluginAntd = {
               class: 'vxe-table--filter-antd-wrapper'
             }, optionGroups
               ? column.filters.map((option, oIndex) => {
-                  const optionValue = option.data
-                  const props = getCellEditFilterProps(renderOpts, params, optionValue)
-                  return h('a-select', {
-                    key: oIndex,
-                    attrs,
-                    props,
-                    on: getFilterOns(renderOpts, params, option, () => {
+                const optionValue = option.data
+                const props = getCellEditFilterProps(renderOpts, params, optionValue)
+                return h('a-select', {
+                  key: oIndex,
+                  attrs,
+                  props,
+                  on: getFilterOns(renderOpts, params, option, () => {
                     // 处理 change 事件相关逻辑
-                      handleConfirmFilter(params, props.mode === 'multiple' ? (option.data && option.data.length > 0) : !XEUtils.eqNull(option.data), option)
-                    }),
-                    nativeOn
-                  }, XEUtils.map(optionGroups, (group, gIndex) => {
-                    return h('a-select-opt-group', {
-                      key: gIndex
-                    }, [
-                      h('span', {
-                        slot: 'label'
-                      }, group[groupLabel])
-                    ].concat(
-                      renderOptions(h, group[groupOptions], optionProps)
-                    ))
-                  }))
-                })
+                    handleConfirmFilter(params, props.mode === 'multiple' ? (option.data && option.data.length > 0) : !_.isNil(option.data), option)
+                  }),
+                  nativeOn
+                }, _.map(optionGroups, (group: any, gIndex: any) => {
+                  return h('a-select-opt-group', {
+                    key: gIndex
+                  }, [
+                    h('span', {
+                      slot: 'label'
+                    }, group[groupLabel])
+                  ].concat(
+                    renderOptions(h, group[groupOptions], optionProps)
+                  ))
+                }))
+              })
               : column.filters.map((option, oIndex) => {
                 const optionValue = option.data
                 const props = getCellEditFilterProps(renderOpts, params, optionValue)
@@ -583,7 +585,7 @@ export const VXETablePluginAntd = {
                   props,
                   on: getFilterOns(renderOpts, params, option, () => {
                     // 处理 change 事件相关逻辑
-                    handleConfirmFilter(params, props.mode === 'multiple' ? (option.data && option.data.length > 0) : !XEUtils.eqNull(option.data), option)
+                    handleConfirmFilter(params, props.mode === 'multiple' ? (option.data && option.data.length > 0) : !_.isNil(option.data), option)
                   }),
                   nativeOn
                 }, renderOptions(h, options, optionProps))
@@ -595,10 +597,10 @@ export const VXETablePluginAntd = {
           const { data } = option
           const { property, filterRender: renderOpts } = column
           const { props = {} } = renderOpts
-          const cellValue = XEUtils.get(row, property)
+          const cellValue = _.get(row, property)
           if (props.mode === 'multiple') {
-            if (XEUtils.isArray(cellValue)) {
-              return XEUtils.includeArrays(cellValue, data)
+            if (_.isArray(cellValue)) {
+              return _.intersection(cellValue, data).length === data.length
             }
             return data.indexOf(cellValue) > -1
           }
@@ -609,7 +611,7 @@ export const VXETablePluginAntd = {
           const { options = [], optionGroups, optionProps = {}, optionGroupProps = {} } = renderOpts
           const { data, property } = params
           const { attrs } = renderOpts
-          const itemValue = XEUtils.get(data, property)
+          const itemValue = _.get(data, property)
           const props = getItemProps(renderOpts, params, itemValue)
           const on = getItemOns(renderOpts, params)
           const nativeOn = getNativeOns(renderOpts, params)
@@ -622,7 +624,7 @@ export const VXETablePluginAntd = {
                 props,
                 on,
                 nativeOn
-              }, XEUtils.map(optionGroups, (group, gIndex) => {
+              }, _.map(optionGroups, (group: any, gIndex: any) => {
                 return h('a-select-opt-group', {
                   key: gIndex
                 }, [
@@ -648,7 +650,7 @@ export const VXETablePluginAntd = {
           const { options = [], optionGroups, optionProps = {}, optionGroupProps = {} } = renderOpts
           const { data, property } = params
           const { attrs } = renderOpts
-          const itemValue = XEUtils.get(data, property)
+          const itemValue = _.get(data, property)
           const props = getItemProps(renderOpts, params, itemValue)
           const on = getItemOns(renderOpts, params)
           const nativeOn = getNativeOns(renderOpts, params)
@@ -661,7 +663,7 @@ export const VXETablePluginAntd = {
                 props,
                 on,
                 nativeOn
-              }, XEUtils.map(optionGroups, (group, gIndex) => {
+              }, _.map(optionGroups, (group: any, gIndex: any) => {
                 return h('a-select-opt-group', {
                   key: gIndex
                 }, [
@@ -774,7 +776,7 @@ export const VXETablePluginAntd = {
                 props: getCellEditFilterProps(renderOpts, params, optionValue),
                 on: getFilterOns(renderOpts, params, option, () => {
                   // 处理 change 事件相关逻辑
-                  handleConfirmFilter(params, XEUtils.isBoolean(option.data), option)
+                  handleConfirmFilter(params, _.isBoolean(option.data), option)
                 }),
                 nativeOn
               })
